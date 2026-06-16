@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Rotina{% endblock %}{% block page_title %}Rotina – {{ rotina.idoso.nome }}{% endblock %}
+{% block topbar_actions %}<a href="{% url 'atividades:editar' rotina.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>{% endblock %}
+{% block content %}<div class="row justify-content-center"><div class="col-lg-8"><div class="form-card">
+<div class="row g-3">
+  <div class="col-md-6">
+    <h6 style="font-weight:600;color:#2E7D32;"><i class="bi bi-droplet me-2"></i>Higienização</h6>
+    <ul class="list-unstyled mb-0" style="font-size:.9rem;">
+      <li><i class="bi bi-{% if rotina.banho_realizado %}check-circle-fill text-success{% else %}x-circle text-muted{% endif %} me-2"></i>Banho</li>
+      <li><i class="bi bi-{% if rotina.higiene_oral %}check-circle-fill text-success{% else %}x-circle text-muted{% endif %} me-2"></i>Higiene Oral</li>
+      <li><i class="bi bi-{% if rotina.troca_roupa %}check-circle-fill text-success{% else %}x-circle text-muted{% endif %} me-2"></i>Troca de Roupa</li>
+      <li><i class="bi bi-{% if rotina.curativo %}check-circle-fill text-success{% else %}x-circle text-muted{% endif %} me-2"></i>Curativo</li>
+    </ul>
+    {% if rotina.obs_higiene %}<p class="mt-2 text-muted" style="font-size:.85rem;">{{ rotina.obs_higiene }}</p>{% endif %}
+  </div>
+  <div class="col-md-6">
+    <h6 style="font-weight:600;color:#2E7D32;"><i class="bi bi-egg-fried me-2"></i>Alimentação</h6>
+    <dl style="font-size:.9rem;">
+      <dt class="text-muted">Refeições</dt><dd>{{ rotina.refeicoes_realizadas|default:"–" }}</dd>
+      <dt class="text-muted">Aceitação</dt><dd>{{ rotina.get_aceitacao_alimentar_display|default:"–" }}</dd>
+    </dl>
+    {% if rotina.obs_alimentacao %}<p class="text-muted" style="font-size:.85rem;">{{ rotina.obs_alimentacao }}</p>{% endif %}
+  </div>
+  {% if rotina.observacoes_gerais %}<div class="col-12"><hr><p style="font-size:.9rem;"><strong>Obs. Gerais:</strong> {{ rotina.observacoes_gerais }}</p></div>{% endif %}
+</div>
+</div></div></div>{% endblock %}

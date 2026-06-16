@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AsiloGest{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --sidebar-width: 250px;
+      --primary: #2E7D32;
+      --primary-light: #43A047;
+      --accent: #1565C0;
+      --bg-sidebar: #1B2A1E;
+      --bg-sidebar-hover: #2E4A33;
+      --text-sidebar: #C8E6C9;
+    }
+    body { background: #F4F6F8; font-family: 'Segoe UI', sans-serif; }
+    /* Sidebar */
+    #sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-width); height: 100vh;
+      background: var(--bg-sidebar); z-index: 1000;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 1.5rem 1.2rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-brand h5 { color: #fff; font-weight: 700; margin: 0; font-size: 1.1rem; }
+    .sidebar-brand small { color: var(--text-sidebar); font-size: .75rem; }
+    .sidebar-nav { padding: .5rem 0; flex: 1; }
+    .nav-section {
+      padding: .5rem 1rem .2rem;
+      color: rgba(200,230,201,.4);
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .55rem 1.2rem;
+      color: var(--text-sidebar);
+      text-decoration: none;
+      font-size: .875rem;
+      transition: all .2s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: var(--bg-sidebar-hover);
+      color: #fff;
+      border-left-color: var(--primary-light);
+    }
+    .sidebar-link i { font-size: 1rem; width: 1.2rem; }
+    .sidebar-user {
+      padding: .8rem 1.2rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .sidebar-user .avatar {
+      width: 36px; height: 36px;
+      background: var(--primary-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: .9rem;
+    }
+    .sidebar-user .info small { color: rgba(200,230,201,.6); font-size: .7rem; display: block; }
+    .sidebar-user .info span { color: #fff; font-size: .8rem; }
+    /* Main content */
+    #main {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #E0E0E0;
+      padding: .75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar h4 { margin: 0; font-size: 1.1rem; font-weight: 600; color: #1B2A1E; }
+    .content { padding: 1.5rem; flex: 1; }
+    /* Cards */
+    .stat-card {
+      background: #fff; border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px solid #E8EAF0;
+      transition: box-shadow .2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    /* Tables */
+    .table-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #E8EAF0;
+      overflow: hidden;
+    }
+    .table-card .table { margin: 0; }
+    .table thead th {
+      background: #F8F9FA;
+      border-bottom: 2px solid #E8EAF0;
+      font-size: .8rem;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: .75rem 1rem;
+    }
+    .table td { padding: .75rem 1rem; vertical-align: middle; font-size: .9rem; }
+    /* Badges */
+    .badge-ativo { background:#E8F5E9; color:#2E7D32; }
+    .badge-inativo { background:#FFF3E0; color:#E65100; }
+    .badge-agendada { background:#E3F2FD; color:#1565C0; }
+    .badge-realizada { background:#E8F5E9; color:#2E7D32; }
+    .badge-cancelada { background:#FFEBEE; color:#C62828; }
+    .badge-estoque-baixo { background:#FFEBEE; color:#C62828; }
+    /* Alerts */
+    .alert { border-radius: 10px; border: none; font-size: .9rem; }
+    /* Forms */
+    .form-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #E8EAF0;
+      padding: 1.5rem;
+    }
+    .form-label { font-weight: 500; font-size: .875rem; color: #374151; }
+    /* Buttons */
+    .btn-primary { background: var(--primary); border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-light); border-color: var(--primary-light); }
+    /* Responsive */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #main { margin-left: 0; }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<div id="sidebar">
+  <div class="sidebar-brand">
+    <h5><i class="bi bi-heart-pulse-fill me-2" style="color:#81C784"></i>AsiloGest</h5>
+    <small>Sistema de Gerenciamento</small>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Geral</div>
+    <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    {% if not user.is_familiar %}
+    <a href="{% url 'idosos:lista' %}" class="sidebar-link">
+      <i class="bi bi-person-heart"></i> Idosos
+    </a>
+    {% else %}
+    <a href="{% url 'idosos:lista' %}" class="sidebar-link">
+      <i class="bi bi-person-heart"></i> Meus Familiares
+    </a>
+    {% endif %}
+
+    {% if user.pode_ver_saude %}
+    <div class="nav-section">Saúde</div>
+    <a href="{% url 'consultas:lista' %}" class="sidebar-link">
+      <i class="bi bi-clipboard2-pulse"></i> Consultas
+    </a>
+    <a href="{% url 'medicamentos:lista' %}" class="sidebar-link">
+      <i class="bi bi-capsule"></i> Medicamentos
+    </a>
+    <a href="{% url 'fisioterapia:lista' %}" class="sidebar-link">
+      <i class="bi bi-activity"></i> Fisioterapia
+    </a>
+    {% endif %}
+
+    {% if not user.is_familiar %}
+    <div class="nav-section">Rotina</div>
+    <a href="{% url 'atividades:lista' %}" class="sidebar-link">
+      <i class="bi bi-calendar2-check"></i> Atividades Diárias
+    </a>
+    {% endif %}
+
+    {% if user.pode_administrar %}
+    <div class="nav-section">Administração</div>
+    <a href="{% url 'funcionarios:lista' %}" class="sidebar-link">
+      <i class="bi bi-people"></i> Funcionários
+    </a>
+    <a href="{% url 'relatorios:lista' %}" class="sidebar-link">
+      <i class="bi bi-bar-chart-line"></i> Relatórios
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+    <div class="info">
+      <span>{{ user.get_full_name|truncatechars:18 }}</span>
+      <small>{{ user.get_perfil_display }}</small>
+    </div>
+    <a href="{% url 'logout' %}" class="ms-auto text-danger" title="Sair">
+      <i class="bi bi-box-arrow-right"></i>
+    </a>
+  </div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <h4>{% block page_title %}{% endblock %}</h4>
+    <div class="d-flex align-items-center gap-2">
+      {% block topbar_actions %}{% endblock %}
+    </div>
+  </div>
+  <div class="content">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+{% block full_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

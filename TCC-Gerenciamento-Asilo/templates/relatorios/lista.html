@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios{% endblock %}{% block page_title %}Relatórios{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="stat-card h-100">
+      <div class="stat-icon mb-3" style="background:#E8F5E9;color:#2E7D32;"><i class="bi bi-person-heart-fill"></i></div>
+      <h6 style="font-weight:600;">Relatório de Idosos</h6>
+      <p class="text-muted" style="font-size:.875rem;">Lista completa dos residentes com dados cadastrais e de saúde.</p>
+      <a href="{% url 'relatorios:idosos_relatorio' %}" class="btn btn-sm btn-outline-success">Gerar Relatório</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card h-100">
+      <div class="stat-icon mb-3" style="background:#FFEBEE;color:#C62828;"><i class="bi bi-capsule-pill"></i></div>
+      <h6 style="font-weight:600;">Controle de Medicamentos</h6>
+      <p class="text-muted" style="font-size:.875rem;">Alertas de estoque e histórico de administrações dos últimos 30 dias.</p>
+      <a href="{% url 'relatorios:medicamentos_relatorio' %}" class="btn btn-sm btn-outline-danger">Gerar Relatório</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card h-100">
+      <div class="stat-icon mb-3" style="background:#E3F2FD;color:#1565C0;"><i class="bi bi-bar-chart-line-fill"></i></div>
+      <h6 style="font-weight:600;">Painel Administrativo</h6>
+      <p class="text-muted" style="font-size:.875rem;">Visão geral do sistema: consultas, sessões e atividades do período.</p>
+      <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-primary">Ver Dashboard</a>
+    </div>
+  </div>
+</div>{% endblock %}

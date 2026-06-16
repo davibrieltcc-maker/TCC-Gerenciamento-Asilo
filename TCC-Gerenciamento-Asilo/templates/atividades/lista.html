@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Atividades Diárias{% endblock %}{% block page_title %}Atividades Diárias{% endblock %}
+{% block topbar_actions %}<a href="{% url 'atividades:novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Registrar Rotina</a>{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <form method="get" class="d-flex gap-2">
+      <input type="date" name="data" class="form-control form-control-sm" value="{{ data_filtro }}">
+      <button class="btn btn-sm btn-outline-secondary">Filtrar</button>
+    </form>
+  </div>
+</div>
+{% if horarios %}
+<div class="form-card mb-3">
+  <h6 style="font-weight:600;color:#2E7D32;font-size:.875rem;"><i class="bi bi-clock me-2"></i>Horários Programados de Hoje</h6>
+  <div class="d-flex flex-wrap gap-2">
+    {% for h in horarios %}<span class="badge" style="background:#E8F5E9;color:#2E7D32;font-size:.8rem;font-weight:500;">{{ h.horario|time:"H:i" }} – {{ h.titulo }}</span>{% endfor %}
+  </div>
+</div>{% endif %}
+<div class="table-card"><table class="table table-hover">
+<thead><tr><th>Idoso</th><th>Turno</th><th>Responsável</th><th>Higiene</th><th>Alimentação</th><th></th></tr></thead>
+<tbody>{% for r in rotinas %}<tr>
+  <td><div style="font-weight:500;">{{ r.idoso.nome }}</div></td>
+  <td style="font-size:.875rem;">{{ r.get_turno_display }}</td>
+  <td style="font-size:.875rem;">{{ r.responsavel.get_full_name|default:"–" }}</td>
+  <td style="font-size:.8rem;">
+    {% if r.banho_realizado %}<span class="badge me-1" style="background:#E8F5E9;color:#2E7D32;">Banho ✓</span>{% endif %}
+    {% if r.higiene_oral %}<span class="badge me-1" style="background:#E8F5E9;color:#2E7D32;">Oral ✓</span>{% endif %}
+    {% if r.troca_roupa %}<span class="badge" style="background:#E8F5E9;color:#2E7D32;">Roupa ✓</span>{% endif %}
+  </td>
+  <td style="font-size:.875rem;">{{ r.get_aceitacao_alimentar_display|default:"–" }}</td>
+  <td class="text-end">
+    <a href="{% url 'atividades:detalhe' r.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+    <a href="{% url 'atividades:editar' r.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+  </td>
+</tr>{% empty %}<tr><td colspan="6" class="text-center py-4 text-muted">Nenhuma rotina registrada para esta data.</td></tr>{% endfor %}</tbody>
+</table></div>{% endblock %}

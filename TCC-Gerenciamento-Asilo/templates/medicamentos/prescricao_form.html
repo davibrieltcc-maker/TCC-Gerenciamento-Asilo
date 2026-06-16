@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Nova Prescrição{% endblock %}{% block page_title %}Nova Prescrição – {{ idoso.nome }}{% endblock %}
+{% block content %}<div class="row justify-content-center"><div class="col-lg-7"><div class="form-card">
+<form method="post">{% csrf_token %}<div class="row g-3">
+  <div class="col-12"><label class="form-label">Medicamento</label>{{ form.medicamento }}</div>
+  <div class="col-md-6"><label class="form-label">Dose</label>{{ form.dose }}</div>
+  <div class="col-md-6"><label class="form-label">Frequência</label>{{ form.frequencia }}</div>
+  <div class="col-12"><label class="form-label">Horários</label>{{ form.horarios }}</div>
+  <div class="col-md-6"><label class="form-label">Início</label>{{ form.data_inicio }}</div>
+  <div class="col-md-6"><label class="form-label">Fim (opcional)</label>{{ form.data_fim }}</div>
+  <div class="col-12"><label class="form-label">Via de Administração</label>{{ form.via_administracao }}</div>
+  <div class="col-12"><label class="form-label">Observações</label>{{ form.observacoes }}</div>
+  <div class="col-12 d-flex gap-2 pt-2">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Prescrever</button>
+    <a href="{% url 'idosos:detalhe' idoso.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</div></form></div></div></div>{% endblock %}

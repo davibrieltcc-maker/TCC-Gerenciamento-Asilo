@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}{% block page_title %}{{ titulo }}{% endblock %}
+{% block content %}<div class="row justify-content-center"><div class="col-lg-8"><div class="form-card">
+<form method="post">{% csrf_token %}<div class="row g-3">
+  <div class="col-md-6"><label class="form-label">Idoso</label>{{ form.idoso }}</div>
+  <div class="col-md-3"><label class="form-label">Data</label>{{ form.data }}</div>
+  <div class="col-md-3"><label class="form-label">Turno</label>{{ form.turno }}</div>
+  <div class="col-12"><h6 class="text-muted mt-2"><i class="bi bi-droplet me-2"></i>Higienização</h6></div>
+  <div class="col-md-3 d-flex align-items-center gap-2">{{ form.banho_realizado }}<label class="form-check-label">Banho Realizado</label></div>
+  <div class="col-md-3 d-flex align-items-center gap-2">{{ form.higiene_oral }}<label class="form-check-label">Higiene Oral</label></div>
+  <div class="col-md-3 d-flex align-items-center gap-2">{{ form.troca_roupa }}<label class="form-check-label">Troca de Roupa</label></div>
+  <div class="col-md-3 d-flex align-items-center gap-2">{{ form.curativo }}<label class="form-check-label">Curativo</label></div>
+  <div class="col-12"><label class="form-label">Obs. Higienização</label>{{ form.obs_higiene }}</div>
+  <div class="col-12"><h6 class="text-muted mt-2"><i class="bi bi-egg-fried me-2"></i>Alimentação</h6></div>
+  <div class="col-md-8"><label class="form-label">Refeições Realizadas</label>{{ form.refeicoes_realizadas }}</div>
+  <div class="col-md-4"><label class="form-label">Aceitação Alimentar</label>{{ form.aceitacao_alimentar }}</div>
+  <div class="col-12"><label class="form-label">Obs. Alimentação</label>{{ form.obs_alimentacao }}</div>
+  <div class="col-12"><label class="form-label">Observações Gerais</label>{{ form.observacoes_gerais }}</div>
+  <div class="col-12 d-flex gap-2 pt-2">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+    <a href="{% url 'atividades:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</div></form></div></div></div>{% endblock %}
