@@ -17,13 +17,24 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+
+        # Primeiro acesso: usuário criado sem senha — não precisa de senha para entrar
+        try:
+            candidate = Usuario.objects.get(username=username, ativo=True)
+            if candidate.primeiro_acesso and not candidate.has_usable_password():
+                candidate.backend = 'django.contrib.auth.backends.ModelBackend'
+                login(request, candidate)
+                return redirect('definir_senha')
+        except Usuario.DoesNotExist:
+            pass
+
+        # Autenticação normal
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if not user.ativo:
                 messages.error(request, 'Usuário inativo. Contate o administrador.')
             else:
                 login(request, user)
-                # Redireciona para definição de senha se for primeiro acesso
                 if user.primeiro_acesso:
                     return redirect('definir_senha')
                 return redirect(request.GET.get('next', 'dashboard'))
@@ -70,7 +81,7 @@ def dashboard(request):
 
     if request.user.pode_cadastrar_idosos:
         ctx['total_idosos'] = Idoso.objects.filter(status='ativo').count()
-        ctx['total_usuarios'] = Usuario.objects.filter(ativo=True).exclude(perfil='familiar').count()
+        ctx['total_funcionarios'] = Usuario.objects.filter(ativo=True).exclude(perfil='familiar').count()
 
     if request.user.pode_ver_saude:
         ctx['consultas_hoje'] = Consulta.objects.filter(

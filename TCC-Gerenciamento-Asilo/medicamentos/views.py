@@ -8,8 +8,18 @@ from core.decorators import perfil_required, saude_required
 
 
 @login_required
-@saude_required
 def lista(request):
+    user = request.user
+    if user.is_familiar:
+        from idosos.models import FamiliarVinculo
+        idosos_ids = FamiliarVinculo.objects.filter(familiar=user).values_list('idoso_id', flat=True)
+        prescricoes = PrescricaoMedicamento.objects.filter(
+            idoso__in=idosos_ids, ativa=True
+        ).select_related('idoso', 'medicamento', 'prescrito_por').order_by('idoso__nome')
+        return render(request, 'medicamentos/lista.html', {'prescricoes_familiar': prescricoes})
+    if not user.pode_ver_saude:
+        messages.error(request, 'Acesso negado.')
+        return redirect('dashboard')
     q = request.GET.get('q', '')
     meds = Medicamento.objects.filter(ativo=True)
     if q:
@@ -19,15 +29,21 @@ def lista(request):
 
 
 @login_required
-@saude_required
 def detalhe(request, pk):
+    user = request.user
+    if user.is_familiar:
+        messages.error(request, 'Acesso negado.')
+        return redirect('medicamentos:lista')
+    if not user.pode_ver_saude:
+        messages.error(request, 'Acesso negado.')
+        return redirect('dashboard')
     med = get_object_or_404(Medicamento, pk=pk)
     prescricoes = med.prescricoes.select_related('idoso').filter(ativa=True)
     return render(request, 'medicamentos/detalhe.html', {'medicamento': med, 'prescricoes': prescricoes})
 
 
 @login_required
-@perfil_required('administrador', 'medico', 'enfermeiro')
+@perfil_required('administrador', 'enfermeiro')
 def novo(request):
     form = MedicamentoForm(request.POST or None)
     if form.is_valid():
@@ -38,7 +54,7 @@ def novo(request):
 
 
 @login_required
-@perfil_required('administrador', 'medico', 'enfermeiro')
+@perfil_required('administrador', 'enfermeiro')
 def editar(request, pk):
     med = get_object_or_404(Medicamento, pk=pk)
     form = MedicamentoForm(request.POST or None, instance=med)

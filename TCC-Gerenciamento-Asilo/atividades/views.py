@@ -9,7 +9,17 @@ from core.decorators import perfil_required
 
 @login_required
 def lista(request):
+    user = request.user
     data = request.GET.get('data', str(date.today()))
+
+    if user.is_familiar:
+        from idosos.models import FamiliarVinculo
+        idosos_ids = FamiliarVinculo.objects.filter(familiar=user).values_list('idoso_id', flat=True)
+        rotinas = RotinaDiaria.objects.filter(
+            data=data, idoso__in=idosos_ids
+        ).select_related('idoso', 'responsavel').order_by('turno')
+        return render(request, 'atividades/lista.html', {'rotinas': rotinas, 'data_filtro': data, 'horarios': []})
+
     rotinas = RotinaDiaria.objects.filter(data=data).select_related('idoso', 'responsavel').order_by('turno')
     horarios = HorarioAtividade.objects.filter(ativo=True).order_by('horario')
     return render(request, 'atividades/lista.html', {'rotinas': rotinas, 'data_filtro': data, 'horarios': horarios})

@@ -8,22 +8,24 @@ from core.decorators import perfil_required, saude_required, familiar_bloqueado
 
 
 @login_required
-@saude_required
 def lista(request):
+    user = request.user
+    if user.is_familiar:
+        from idosos.models import FamiliarVinculo
+        ids = FamiliarVinculo.objects.filter(familiar=user).values_list('idoso_id', flat=True)
+        sessoes = SessaoFisioterapia.objects.filter(
+            idoso__in=ids).select_related('idoso', 'fisioterapeuta').order_by('-data_hora')
+        return render(request, 'fisioterapia/lista.html', {'sessoes': sessoes, 'pendentes_autorizacao': 0})
+    if not user.pode_ver_saude:
+        messages.error(request, 'Acesso negado.')
+        return redirect('dashboard')
+
     sessoes = SessaoFisioterapia.objects.select_related(
         'idoso', 'fisioterapeuta', 'autorizado_por'
     ).order_by('-data_hora')[:50]
 
-    # Familiar só vê sessões do seu idoso
-    if request.user.is_familiar:
-        from idosos.models import FamiliarVinculo
-        ids = FamiliarVinculo.objects.filter(
-            familiar=request.user).values_list('idoso_id', flat=True)
-        sessoes = SessaoFisioterapia.objects.filter(
-            idoso__in=ids).select_related('idoso', 'fisioterapeuta').order_by('-data_hora')
-
     pendentes = SessaoFisioterapia.objects.filter(
-        autorizada=False, status='agendada').count() if request.user.is_medico or request.user.is_administrador else 0
+        autorizada=False, status='agendada').count() if user.is_medico or user.is_administrador else 0
 
     return render(request, 'fisioterapia/lista.html', {
         'sessoes': sessoes,
@@ -137,3 +139,58 @@ def excluir(request, pk):
         sessao.delete()
         return redirect('fisioterapia:lista')
     return render(request, 'fisioterapia/confirmar_exclusao.html', {'sessao': sessao})
+
+
+# ── Plano de Reabilitação ─────────────────────────────────────────────────────
+
+@login_required
+def planos_lista(request):
+    user = request.user
+    if user.is_familiar:
+        from idosos.models import FamiliarVinculo
+        ids = FamiliarVinculo.objects.filter(familiar=user).values_list('idoso_id', flat=True)
+        planos = PlanoReabilitacao.objects.filter(idoso__in=ids, ativo=True).select_related('idoso', 'fisioterapeuta')
+        return render(request, 'fisioterapia/planos_lista.html', {'planos': planos})
+    if not user.pode_ver_saude:
+        messages.error(request, 'Acesso negado.')
+        return redirect('dashboard')
+    planos = PlanoReabilitacao.objects.select_related('idoso', 'fisioterapeuta').filter(ativo=True)
+    return render(request, 'fisioterapia/planos_lista.html', {'planos': planos})
+
+
+@login_required
+@perfil_required('fisioterapeuta', 'administrador')
+def plano_novo(request):
+    form = PlanoForm(request.POST or None)
+    if form.is_valid():
+        plano = form.save(commit=False)
+        if request.user.is_fisioterapeuta:
+            plano.fisioterapeuta = request.user
+        plano.save()
+        messages.success(request, 'Plano de reabilitação criado!')
+        return redirect('fisioterapia:planos_lista')
+    return render(request, 'fisioterapia/plano_form.html', {'form': form, 'titulo': 'Novo Plano de Reabilitação'})
+
+
+@login_required
+@perfil_required('fisioterapeuta', 'administrador')
+def plano_editar(request, pk):
+    plano = get_object_or_404(PlanoReabilitacao, pk=pk)
+    form = PlanoForm(request.POST or None, instance=plano)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Plano atualizado!')
+        return redirect('fisioterapia:planos_lista')
+    return render(request, 'fisioterapia/plano_form.html', {'form': form, 'titulo': 'Editar Plano', 'plano': plano})
+
+
+@login_required
+@perfil_required('administrador')
+def plano_excluir(request, pk):
+    plano = get_object_or_404(PlanoReabilitacao, pk=pk)
+    if request.method == 'POST':
+        plano.ativo = False
+        plano.save(update_fields=['ativo'])
+        messages.success(request, 'Plano encerrado.')
+        return redirect('fisioterapia:planos_lista')
+    return render(request, 'fisioterapia/confirmar_exclusao.html', {'plano': plano})
