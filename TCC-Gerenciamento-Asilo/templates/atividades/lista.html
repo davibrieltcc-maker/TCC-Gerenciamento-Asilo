@@ -10,13 +10,6 @@
     </form>
   </div>
 </div>
-{% if horarios %}
-<div class="form-card mb-3">
-  <h6 style="font-weight:600;color:#2E7D32;font-size:.875rem;"><i class="bi bi-clock me-2"></i>Horários Programados de Hoje</h6>
-  <div class="d-flex flex-wrap gap-2">
-    {% for h in horarios %}<span class="badge" style="background:#E8F5E9;color:#2E7D32;font-size:.8rem;font-weight:500;">{{ h.horario|time:"H:i" }} – {{ h.titulo }}</span>{% endfor %}
-  </div>
-</div>{% endif %}
 <div class="table-card"><table class="table table-hover">
 <thead><tr><th>Idoso</th><th>Turno</th><th>Responsável</th><th>Higiene</th><th>Alimentação</th><th></th></tr></thead>
 <tbody>{% for r in rotinas %}<tr>

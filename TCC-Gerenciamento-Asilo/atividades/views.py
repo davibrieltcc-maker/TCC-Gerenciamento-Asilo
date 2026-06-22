@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from datetime import date
+from datetime import date, datetime
 from .models import RotinaDiaria, HorarioAtividade
 from .forms import RotinaForm
 from core.decorators import perfil_required
@@ -10,24 +10,51 @@ from core.decorators import perfil_required
 @login_required
 def lista(request):
     user = request.user
-    data = request.GET.get('data', str(date.today()))
+    data_param = request.GET.get('data', '').strip()
+
+    # Valida a data se foi informada
+    data_valida = None
+    if data_param:
+        try:
+            datetime.strptime(data_param, '%Y-%m-%d')
+            data_valida = data_param
+        except ValueError:
+            data_valida = None
 
     if user.is_familiar:
         from idosos.models import FamiliarVinculo
-        idosos_ids = FamiliarVinculo.objects.filter(familiar=user).values_list('idoso_id', flat=True)
+        idosos_ids = FamiliarVinculo.objects.filter(
+            familiar=user).values_list('idoso_id', flat=True)
         rotinas = RotinaDiaria.objects.filter(
-            data=data, idoso__in=idosos_ids
-        ).select_related('idoso', 'responsavel').order_by('turno')
-        return render(request, 'atividades/lista.html', {'rotinas': rotinas, 'data_filtro': data, 'horarios': []})
+            idoso__in=idosos_ids
+        ).select_related('idoso', 'responsavel').order_by('-data', 'turno')
+        if data_valida:
+            rotinas = rotinas.filter(data=data_valida)
+        return render(request, 'atividades/lista.html', {
+            'rotinas': rotinas,
+            'data_filtro': data_valida or '',
+            'horarios': []
+        })
 
-    rotinas = RotinaDiaria.objects.filter(data=data).select_related('idoso', 'responsavel').order_by('turno')
+    # Mostra todas as rotinas, filtra por data se informada
+    rotinas = RotinaDiaria.objects.select_related(
+        'idoso', 'responsavel').order_by('-data', 'turno')
+    if data_valida:
+        rotinas = rotinas.filter(data=data_valida)
+
     horarios = HorarioAtividade.objects.filter(ativo=True).order_by('horario')
-    return render(request, 'atividades/lista.html', {'rotinas': rotinas, 'data_filtro': data, 'horarios': horarios})
+    return render(request, 'atividades/lista.html', {
+        'rotinas': rotinas,
+        'data_filtro': data_valida or '',
+        'horarios': horarios
+    })
+
 
 @login_required
 def detalhe(request, pk):
     rotina = get_object_or_404(RotinaDiaria, pk=pk)
     return render(request, 'atividades/detalhe.html', {'rotina': rotina})
+
 
 @login_required
 @perfil_required('administrador', 'enfermeiro', 'recepcionista')
@@ -39,7 +66,10 @@ def novo(request):
         r.save()
         messages.success(request, 'Rotina registrada!')
         return redirect('atividades:lista')
-    return render(request, 'atividades/form.html', {'form': form, 'titulo': 'Registrar Rotina'})
+    return render(request, 'atividades/form.html', {
+        'form': form, 'titulo': 'Registrar Rotina'
+    })
+
 
 @login_required
 @perfil_required('administrador', 'enfermeiro')
@@ -50,7 +80,10 @@ def editar(request, pk):
         form.save()
         messages.success(request, 'Rotina atualizada!')
         return redirect('atividades:lista')
-    return render(request, 'atividades/form.html', {'form': form, 'titulo': 'Editar Rotina'})
+    return render(request, 'atividades/form.html', {
+        'form': form, 'titulo': 'Editar Rotina'
+    })
+
 
 @login_required
 @perfil_required('administrador')
