@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}{{ titulo }}{% endblock %}{% block page_title %}{{ titulo }}{% endblock %}
 {% block content %}<div class="row justify-content-center"><div class="col-lg-7"><div class="form-card">
-<form method="post">{% csrf_token %}<div class="row g-3">
+<form method="post">{% csrf_token %}
+{% include '_form_errors.html' %}
+<div class="row g-3">
   <div class="col-12"><label class="form-label">Usuário do Sistema</label>{{ form.usuario }}</div>
   <div class="col-md-6"><label class="form-label">Registro Profissional</label>{{ form.registro_profissional }}</div>
   <div class="col-md-6"><label class="form-label">Especialidade</label>{{ form.especialidade }}</div>

@@ -89,8 +89,9 @@ def dashboard(request):
         ctx['sessoes_fisio_hoje'] = SessaoFisioterapia.objects.filter(
             data_hora__date=hoje, status='agendada',
             autorizada=True).count()
+        from django.db.models import F
         ctx['medicamentos_estoque_baixo'] = Medicamento.objects.filter(
-            estoque_atual__lte=models_estoque_minimo(), ativo=True).count()
+            estoque_atual__lte=F('estoque_minimo'), ativo=True).count()
         ctx['consultas_proximas'] = Consulta.objects.filter(
             data_hora__date__range=[hoje, hoje + timedelta(days=7)],
             status='agendada'
@@ -109,12 +110,6 @@ def dashboard(request):
         ).select_related('idoso', 'responsavel')
 
     return render(request, 'dashboard/dashboard.html', ctx)
-
-
-def models_estoque_minimo():
-    """Retorna o campo estoque_minimo dinamicamente para o filtro."""
-    from django.db.models import F
-    return F('estoque_minimo')
 
 
 # ── Gestão de Usuários ────────────────────────────────────────────────────────

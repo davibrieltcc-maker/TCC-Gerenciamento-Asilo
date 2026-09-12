@@ -21,6 +21,14 @@ class ConsultaForm(forms.ModelForm):
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # medico e null=True no model (SET_NULL): pode agendar sem medico
+        # definido ainda. So medicos aparecem na lista.
+        self.fields['medico'].required = False
+        from core.models import Usuario
+        self.fields['medico'].queryset = Usuario.objects.filter(perfil='medico', ativo=True)
+
 
 class ProntuarioForm(forms.ModelForm):
     class Meta:

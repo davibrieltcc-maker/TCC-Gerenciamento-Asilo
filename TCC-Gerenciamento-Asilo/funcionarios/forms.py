@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from .models import Funcionario
 
 
@@ -18,3 +19,14 @@ class FuncionarioForm(forms.ModelForm):
             'turno': forms.TextInput(attrs={'class': 'form-control'}),
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Evita escolher um usuario que ja tem ficha de funcionario (OneToOne).
+        from core.models import Usuario
+        qs = Usuario.objects.filter(ativo=True).exclude(perfil='familiar')
+        if self.instance and self.instance.pk:
+            qs = qs.filter(Q(funcionario__isnull=True) | Q(pk=self.instance.usuario_id))
+        else:
+            qs = qs.filter(funcionario__isnull=True)
+        self.fields['usuario'].queryset = qs.order_by('first_name', 'last_name')

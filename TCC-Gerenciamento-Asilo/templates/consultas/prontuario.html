@@ -28,6 +28,7 @@
       {% if not somente_leitura %}
       <form method="post">
         {% csrf_token %}
+        {% include '_form_errors.html' %}
         <div class="mb-3">
           <label class="form-label">{{ form.historico_pessoal.label }}</label>
           {{ form.historico_pessoal }}

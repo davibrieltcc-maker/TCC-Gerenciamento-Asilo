@@ -11,6 +11,7 @@
     <div class="form-card">
       <form method="post">
         {% csrf_token %}
+        {% include '_form_errors.html' %}
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">{{ form.idoso.label }} <span class="text-danger">*</span></label>

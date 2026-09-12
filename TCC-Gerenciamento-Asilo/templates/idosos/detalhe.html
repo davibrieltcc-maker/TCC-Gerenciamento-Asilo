@@ -127,6 +127,7 @@
                 <td>
                   <div style="font-size:.85rem;font-weight:500;">{{ p.medicamento.nome }}</div>
                   <small class="text-muted">{{ p.dose }} · {{ p.get_frequencia_display }}</small>
+                  {% if p.horarios %}<div><small class="text-muted"><i class="bi bi-clock me-1"></i>{{ p.horarios }}</small></div>{% endif %}
                 </td>
                 <td class="text-end">
                   {% if user.is_medico or user.is_enfermeiro or user.is_administrador %}

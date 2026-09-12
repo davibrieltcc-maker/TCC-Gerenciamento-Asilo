@@ -81,6 +81,16 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
+# Formatos de data/hora personalizados (asilo/formats/pt_BR/formats.py).
+# Garante que os campos <input type="date"> exibam a data ja salva ao editar.
+FORMAT_MODULE_PATH = ['asilo.formats']
+
+# Alinha as tags de mensagem do Django com as classes do Bootstrap
+# (messages.error -> "danger", senao o alerta fica sem estilo).
+from django.contrib.messages import constants as _messages  # noqa: E402
+
+MESSAGE_TAGS = {_messages.ERROR: 'danger'}
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -94,6 +104,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
+
+# Sessão: guarda a sessão no cache em memória (LocMemCache), que é zerado toda
+# vez que o servidor reinicia. Assim, ao iniciar o sistema, ninguém continua
+# logado — sempre cai na tela de autenticação. Também expira ao fechar o
+# navegador.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Modelo de usuário customizado
 AUTH_USER_MODEL = 'core.Usuario'
