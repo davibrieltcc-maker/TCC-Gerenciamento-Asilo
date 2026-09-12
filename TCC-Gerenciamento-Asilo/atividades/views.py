@@ -118,7 +118,11 @@ def _salvar_registros_checklist(request, rotina):
 @login_required
 @perfil_required('administrador', 'enfermeiro', 'recepcionista')
 def novo(request):
-    form = RotinaForm(request.POST or None)
+    idoso_inicial = request.GET.get('idoso')
+    form = RotinaForm(request.POST or None, initial={
+        'data': date.today(),
+        'idoso': idoso_inicial,
+    })
     if form.is_valid():
         r = form.save(commit=False)
         r.responsavel = request.user

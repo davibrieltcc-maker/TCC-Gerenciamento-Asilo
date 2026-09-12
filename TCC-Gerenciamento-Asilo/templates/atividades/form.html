@@ -22,6 +22,10 @@
   <div class="col-12"><h6 class="text-muted mt-2"><i class="bi bi-list-check me-2"></i>Atividades Personalizadas</h6></div>
   <div class="col-12">
     <p class="text-muted small mb-0" id="checklist-vazio">Selecione o idoso e a data para ver as atividades programadas.</p>
+    <p class="small mb-0" id="checklist-erro" style="display:none;color:#C62828;">
+      Não foi possível carregar as atividades personalizadas. Recarregue a página e tente novamente
+      (se o problema continuar, pode ser que sua sessão tenha expirado — faça login de novo).
+    </p>
     <div id="checklist-itens"></div>
     <input type="hidden" name="checklist_item_ids" id="checklist_item_ids" value="">
   </div>
@@ -39,17 +43,22 @@
   var dataInp  = document.getElementById('id_data');
   var wrap     = document.getElementById('checklist-itens');
   var vazio    = document.getElementById('checklist-vazio');
+  var erro     = document.getElementById('checklist-erro');
   var idsHidden = document.getElementById('checklist_item_ids');
   if (!idosoSel || !dataInp || !wrap) return;
 
-  function render(items) {
+  function mostrarMensagem(msg) {
     wrap.innerHTML = '';
-    if (!items.length) {
-      vazio.style.display = '';
-      idsHidden.value = '';
-      return;
-    }
+    idsHidden.value = '';
+    vazio.style.display = msg === 'vazio' ? '' : 'none';
+    erro.style.display = msg === 'erro' ? '' : 'none';
+  }
+
+  function render(items) {
+    if (!items.length) { mostrarMensagem('vazio'); return; }
+    wrap.innerHTML = '';
     vazio.style.display = 'none';
+    erro.style.display = 'none';
     var ids = [];
     items.forEach(function (it) {
       ids.push(it.id);
@@ -72,11 +81,17 @@
 
   function carregar() {
     var idoso = idosoSel.value, data = dataInp.value;
-    if (!idoso || !data) { render([]); return; }
+    if (!idoso || !data) { mostrarMensagem('vazio'); vazio.textContent = 'Selecione o idoso e a data para ver as atividades programadas.'; return; }
+    vazio.textContent = 'Nenhuma atividade personalizada programada para este idoso nesta data.';
     fetch('{% url "atividades:atividades_do_dia" %}?idoso=' + encodeURIComponent(idoso) + '&data=' + encodeURIComponent(data))
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error('resposta ' + r.status);
+        var tipo = r.headers.get('content-type') || '';
+        if (tipo.indexOf('application/json') === -1) throw new Error('resposta nao-JSON (sessao expirada?)');
+        return r.json();
+      })
       .then(function (json) { render(json.items || []); })
-      .catch(function () { render([]); });
+      .catch(function (e) { console.error('Falha ao carregar atividades personalizadas:', e); mostrarMensagem('erro'); });
   }
 
   idosoSel.addEventListener('change', carregar);
