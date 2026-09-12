@@ -18,8 +18,70 @@
   <div class="col-md-4"><label class="form-label">Aceitação Alimentar</label>{{ form.aceitacao_alimentar }}</div>
   <div class="col-12"><label class="form-label">Obs. Alimentação</label>{{ form.obs_alimentacao }}</div>
   <div class="col-12"><label class="form-label">Observações Gerais</label>{{ form.observacoes_gerais }}</div>
+
+  <div class="col-12"><h6 class="text-muted mt-2"><i class="bi bi-list-check me-2"></i>Atividades Personalizadas</h6></div>
+  <div class="col-12">
+    <p class="text-muted small mb-0" id="checklist-vazio">Selecione o idoso e a data para ver as atividades programadas.</p>
+    <div id="checklist-itens"></div>
+    <input type="hidden" name="checklist_item_ids" id="checklist_item_ids" value="">
+  </div>
+
   <div class="col-12 d-flex gap-2 pt-2">
     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
     <a href="{% url 'atividades:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
   </div>
 </div></form></div></div></div>{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var idosoSel = document.getElementById('id_idoso');
+  var dataInp  = document.getElementById('id_data');
+  var wrap     = document.getElementById('checklist-itens');
+  var vazio    = document.getElementById('checklist-vazio');
+  var idsHidden = document.getElementById('checklist_item_ids');
+  if (!idosoSel || !dataInp || !wrap) return;
+
+  function render(items) {
+    wrap.innerHTML = '';
+    if (!items.length) {
+      vazio.style.display = '';
+      idsHidden.value = '';
+      return;
+    }
+    vazio.style.display = 'none';
+    var ids = [];
+    items.forEach(function (it) {
+      ids.push(it.id);
+      var row = document.createElement('div');
+      row.className = 'border rounded p-2 mb-2';
+      var obsVal = (it.observacoes || '').replace(/"/g, '&quot;');
+      row.innerHTML =
+        '<div class="d-flex align-items-start gap-2">' +
+          '<input type="checkbox" class="form-check-input mt-1" name="item_realizado_' + it.id + '"' + (it.realizado ? ' checked' : '') + '>' +
+          '<div class="flex-grow-1">' +
+            '<strong style="font-size:.85rem;">' + it.descricao + '</strong>' +
+            '<div class="text-muted" style="font-size:.75rem;">' + it.checklist_titulo + '</div>' +
+            '<input type="text" class="form-control form-control-sm mt-1" name="item_obs_' + it.id + '" placeholder="Observação (opcional)" value="' + obsVal + '">' +
+          '</div>' +
+        '</div>';
+      wrap.appendChild(row);
+    });
+    idsHidden.value = ids.join(',');
+  }
+
+  function carregar() {
+    var idoso = idosoSel.value, data = dataInp.value;
+    if (!idoso || !data) { render([]); return; }
+    fetch('{% url "atividades:atividades_do_dia" %}?idoso=' + encodeURIComponent(idoso) + '&data=' + encodeURIComponent(data))
+      .then(function (r) { return r.json(); })
+      .then(function (json) { render(json.items || []); })
+      .catch(function () { render([]); });
+  }
+
+  idosoSel.addEventListener('change', carregar);
+  dataInp.addEventListener('change', carregar);
+  carregar(); // já carrega se idoso/data vierem preenchidos (edição)
+})();
+</script>
+{% endblock %}

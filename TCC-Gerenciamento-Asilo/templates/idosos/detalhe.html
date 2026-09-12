@@ -196,6 +196,36 @@
           </div>
         </div>
       </div>
+
+      <!-- Checklists de Atividades Personalizadas -->
+      <div class="col-12 col-md-6">
+        <div class="table-card h-100">
+          <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+            <span style="font-weight:600;font-size:.9rem;"><i class="bi bi-list-check me-2" style="color:#6A1B9A;"></i>Atividades Personalizadas</span>
+            <div class="d-flex gap-1">
+              {% if checklists_ativos %}
+              <a href="{% url 'atividades:checklist_lista' idoso.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;"><i class="bi bi-list-ul"></i></a>
+              {% endif %}
+              {% if user.is_medico or user.is_enfermeiro or user.is_fisioterapeuta or user.is_administrador %}
+              <a href="{% url 'atividades:checklist_novo' idoso.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;"><i class="bi bi-plus"></i></a>
+              {% endif %}
+            </div>
+          </div>
+          <div class="p-3">
+            {% for c in checklists_ativos %}
+            <div class="mb-2 p-2" style="background:#F9FAFB;border-radius:8px;font-size:.82rem;">
+              <strong>{{ c.titulo }}</strong>
+              <div class="text-muted" style="font-size:.75rem;">{{ c.dias_semana_display }}</div>
+              <div class="mt-1 d-flex flex-wrap gap-1">
+                {% for item in c.itens.all %}<span class="badge" style="background:#EDE7F6;color:#6A1B9A;">{{ item.descricao }}</span>{% endfor %}
+              </div>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:.85rem;">Nenhuma checklist de atividades cadastrada.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
       {% endif %}
 
     </div>

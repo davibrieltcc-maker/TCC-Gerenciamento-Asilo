@@ -2,16 +2,47 @@
 {% block title %}Atividades Diárias{% endblock %}{% block page_title %}Atividades Diárias{% endblock %}
 {% block topbar_actions %}<a href="{% url 'atividades:novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Registrar Rotina</a>{% endblock %}
 {% block content %}
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <form method="get" class="d-flex gap-2">
+<div class="table-card mb-3 p-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2">
+      <label class="form-label small mb-1">Data</label>
       <input type="date" name="data" class="form-control form-control-sm" value="{{ data_filtro }}">
-      <button class="btn btn-sm btn-outline-secondary">Filtrar</button>
-    </form>
-  </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-1">Idoso</label>
+      <select name="idoso" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        {% for i in idosos_filtro %}
+        <option value="{{ i.pk }}" {% if idoso_filtro == i.pk|stringformat:"s" %}selected{% endif %}>{{ i.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small mb-1">Turno</label>
+      <select name="turno" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        {% for valor, rotulo in turno_choices %}
+        <option value="{{ valor }}" {% if turno_filtro == valor %}selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-1">Ordenar por</label>
+      <select name="ordenar" class="form-select form-select-sm">
+        <option value="recentes" {% if ordenar_filtro == 'recentes' %}selected{% endif %}>Mais recentes primeiro</option>
+        <option value="antigas" {% if ordenar_filtro == 'antigas' %}selected{% endif %}>Mais antigas primeiro</option>
+        <option value="nome_asc" {% if ordenar_filtro == 'nome_asc' %}selected{% endif %}>Nome do idoso (A-Z)</option>
+        <option value="nome_desc" {% if ordenar_filtro == 'nome_desc' %}selected{% endif %}>Nome do idoso (Z-A)</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-2 d-flex gap-2">
+      <button class="btn btn-sm btn-primary flex-grow-1">Filtrar</button>
+      <a href="{% url 'atividades:lista' %}" class="btn btn-sm btn-outline-secondary" title="Limpar filtros"><i class="bi bi-x-lg"></i></a>
+    </div>
+  </form>
 </div>
 <div class="table-card"><table class="table table-hover">
-<thead><tr><th>Idoso</th><th>Turno</th><th>Responsável</th><th>Higiene</th><th>Alimentação</th><th></th></tr></thead>
+<thead><tr><th>Idoso</th><th>Turno</th><th>Responsável</th><th>Higiene</th><th>Alimentação</th><th>Atividades</th><th></th></tr></thead>
 <tbody>{% for r in rotinas %}<tr>
   <td><div style="font-weight:500;">{{ r.idoso.nome }}</div></td>
   <td style="font-size:.875rem;">{{ r.get_turno_display }}</td>
@@ -22,9 +53,22 @@
     {% if r.troca_roupa %}<span class="badge" style="background:#E8F5E9;color:#2E7D32;">Roupa ✓</span>{% endif %}
   </td>
   <td style="font-size:.875rem;">{{ r.get_aceitacao_alimentar_display|default:"–" }}</td>
+  <td style="font-size:.75rem;">
+    {% for item in r.checklist_resumo %}
+      {% if item.registro_do_dia == None %}
+        <span class="badge me-1 mb-1" style="background:#FFF3E0;color:#E65100;" title="Ainda sem registro">{{ item.descricao }} ⏳</span>
+      {% elif item.registro_do_dia.realizado %}
+        <span class="badge me-1 mb-1" style="background:#E8F5E9;color:#2E7D32;">{{ item.descricao }} ✓</span>
+      {% else %}
+        <span class="badge me-1 mb-1" style="background:#FFEBEE;color:#C62828;">{{ item.descricao }} ✗</span>
+      {% endif %}
+    {% empty %}
+    <span class="text-muted">–</span>
+    {% endfor %}
+  </td>
   <td class="text-end">
     <a href="{% url 'atividades:detalhe' r.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
     <a href="{% url 'atividades:editar' r.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
   </td>
-</tr>{% empty %}<tr><td colspan="6" class="text-center py-4 text-muted">Nenhuma rotina registrada para esta data.</td></tr>{% endfor %}</tbody>
+</tr>{% empty %}<tr><td colspan="7" class="text-center py-4 text-muted">Nenhuma rotina registrada para este filtro.</td></tr>{% endfor %}</tbody>
 </table></div>{% endblock %}

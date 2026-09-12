@@ -48,6 +48,7 @@ def detalhe(request, pk):
     sessoes_fisio = idoso.sessoes_fisio.select_related('fisioterapeuta').order_by('-data_hora')[:5]
     rotinas = idoso.rotinas.filter(data=date.today()).select_related('responsavel')
     familiares = idoso.familiares.select_related('familiar').all()
+    checklists_ativos = idoso.checklists_atividades.filter(ativo=True).prefetch_related('itens')
 
     return render(request, 'idosos/detalhe.html', {
         'idoso': idoso,
@@ -57,6 +58,7 @@ def detalhe(request, pk):
         'sessoes_fisio': sessoes_fisio,
         'rotinas': rotinas,
         'familiares': familiares,
+        'checklists_ativos': checklists_ativos,
     })
 
 

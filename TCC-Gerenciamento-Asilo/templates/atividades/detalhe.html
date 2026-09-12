@@ -22,5 +22,31 @@
     {% if rotina.obs_alimentacao %}<p class="text-muted" style="font-size:.85rem;">{{ rotina.obs_alimentacao }}</p>{% endif %}
   </div>
   {% if rotina.observacoes_gerais %}<div class="col-12"><hr><p style="font-size:.9rem;"><strong>Obs. Gerais:</strong> {{ rotina.observacoes_gerais }}</p></div>{% endif %}
+  <div class="col-12">
+    <hr>
+    <h6 style="font-weight:600;color:#6A1B9A;"><i class="bi bi-list-check me-2"></i>Atividades Personalizadas do Dia</h6>
+    {% for item in checklist_itens %}
+    <div class="d-flex align-items-start gap-2 mb-2" style="font-size:.9rem;">
+      {% if item.registro_do_dia == None %}
+        <i class="bi bi-hourglass-split text-warning me-1"></i>
+      {% elif item.registro_do_dia.realizado %}
+        <i class="bi bi-check-circle-fill text-success me-1"></i>
+      {% else %}
+        <i class="bi bi-x-circle-fill text-danger me-1"></i>
+      {% endif %}
+      <div>
+        <strong>{{ item.descricao }}</strong>
+        <span class="text-muted"> – {{ item.checklist.titulo }}</span>
+        {% if item.registro_do_dia == None %}
+          <div class="text-muted" style="font-size:.8rem;">Ainda não registrado hoje.</div>
+        {% elif item.registro_do_dia.observacoes %}
+          <div class="text-muted" style="font-size:.8rem;">{{ item.registro_do_dia.observacoes }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-muted mb-0" style="font-size:.9rem;">Nenhuma atividade personalizada prevista para este dia.</p>
+    {% endfor %}
+  </div>
 </div>
 </div></div></div>{% endblock %}

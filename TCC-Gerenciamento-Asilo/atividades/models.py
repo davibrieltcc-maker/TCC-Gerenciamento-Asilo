@@ -79,3 +79,111 @@ class HorarioAtividade(models.Model):
 
     def __str__(self):
         return f"{self.titulo} – {self.horario:%H:%M}"
+
+
+DIAS_SEMANA_CHOICES = [
+    ('seg', 'Segunda'),
+    ('ter', 'Terça'),
+    ('qua', 'Quarta'),
+    ('qui', 'Quinta'),
+    ('sex', 'Sexta'),
+    ('sab', 'Sábado'),
+    ('dom', 'Domingo'),
+]
+_CODIGOS_DIAS_SEMANA = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom']
+
+
+class ChecklistAtividade(models.Model):
+    """Checklist de atividades personalizadas prescrita para um idoso
+    (ex.: caminhada, alongamento), com período e dias da semana em que se aplica."""
+
+    idoso = models.ForeignKey(Idoso, on_delete=models.CASCADE, related_name='checklists_atividades')
+    titulo = models.CharField(max_length=150, verbose_name='Título')
+    descricao = models.TextField(blank=True, verbose_name='Descrição')
+    dias_semana = models.CharField(
+        max_length=30, verbose_name='Dias da Semana',
+        help_text='Códigos separados por vírgula, ex: seg,qua,sex'
+    )
+    data_inicio = models.DateField(verbose_name='Início')
+    data_fim = models.DateField(null=True, blank=True, verbose_name='Fim (deixe em branco para sem prazo)')
+    prescrito_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, related_name='checklists_prescritas')
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Checklist de Atividade'
+        verbose_name_plural = 'Checklists de Atividades'
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.idoso.nome} – {self.titulo}"
+
+    @property
+    def dias_semana_display(self):
+        labels = dict(DIAS_SEMANA_CHOICES)
+        return ', '.join(labels.get(c, c) for c in self.dias_semana.split(',') if c)
+
+    def aplica_em(self, data):
+        """Indica se esta checklist deve ser exibida/registrada na data informada."""
+        if not self.ativo or data < self.data_inicio:
+            return False
+        if self.data_fim and data > self.data_fim:
+            return False
+        codigo = _CODIGOS_DIAS_SEMANA[data.weekday()]
+        return codigo in self.dias_semana.split(',')
+
+
+class ItemChecklist(models.Model):
+    """Uma tarefa dentro de uma checklist de atividades (ex.: 'Caminhada 20 minutos')."""
+
+    checklist = models.ForeignKey(ChecklistAtividade, on_delete=models.CASCADE, related_name='itens')
+    descricao = models.CharField(max_length=200, verbose_name='Atividade')
+    ordem = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Item de Checklist'
+        verbose_name_plural = 'Itens de Checklist'
+        ordering = ['ordem', 'id']
+
+    def __str__(self):
+        return self.descricao
+
+
+class RegistroItemChecklist(models.Model):
+    """Execução (ou não) de um item de checklist em um dia específico."""
+
+    item = models.ForeignKey(ItemChecklist, on_delete=models.CASCADE, related_name='registros')
+    data = models.DateField()
+    realizado = models.BooleanField(default=False)
+    observacoes = models.TextField(blank=True)
+    registrado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Registro de Item de Checklist'
+        verbose_name_plural = 'Registros de Itens de Checklist'
+        ordering = ['-data']
+        unique_together = ('item', 'data')
+
+    def __str__(self):
+        status = '✓' if self.realizado else '—'
+        return f"{status} {self.item.descricao} – {self.data}"
+
+
+def itens_checklist_do_dia(idoso_id, data):
+    """Itens de checklist aplicáveis a um idoso numa data, cada um já anotado
+    com `.registro_do_dia` (o RegistroItemChecklist daquele dia, ou None se
+    ainda não foi registrado). Não altera nada — apenas consulta.
+    """
+    checklists = ChecklistAtividade.objects.filter(
+        idoso_id=idoso_id, ativo=True).prefetch_related('itens')
+    itens = [item for c in checklists if c.aplica_em(data) for item in c.itens.all()]
+    registros = {
+        r.item_id: r
+        for r in RegistroItemChecklist.objects.filter(item__in=itens, data=data)
+    }
+    for item in itens:
+        item.registro_do_dia = registros.get(item.id)
+    return itens
